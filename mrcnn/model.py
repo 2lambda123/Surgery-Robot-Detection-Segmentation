@@ -266,12 +266,39 @@ class ProposalLayer(KE.Layer):
     """
 
     def __init__(self, proposal_count, nms_threshold, config=None, **kwargs):
+        """Generates region proposals from feature map.
+        Parameters:
+            - proposal_count (int): Number of proposals to generate.
+            - nms_threshold (float): Non-max suppression threshold.
+            - config (Config): Config object with model parameters, defaults to None.
+        Returns:
+            - proposals (array): Array of region proposals.
+        Processing Logic:
+            - Generate proposals from feature map.
+            - Use nms to remove overlapping proposals.
+            - Return top proposal_count proposals."""
+        
         super(ProposalLayer, self).__init__(**kwargs)
         self.config = config
         self.proposal_count = proposal_count
         self.nms_threshold = nms_threshold
 
     def call(self, inputs):
+        """This function takes in a list of inputs and performs processing logic to generate a list of proposals for region-based object detection.
+        Parameters:
+            - inputs (list): A list of inputs containing box scores, box deltas, and anchors.
+        Returns:
+            - proposals (list): A list of proposals for region-based object detection.
+        Processing Logic:
+            - Extract box scores and box deltas from inputs.
+            - Multiply box deltas by the standard deviation.
+            - Trim to top anchors by score and perform the rest of the processing on a smaller subset.
+            - Apply deltas to anchors to get refined anchors.
+            - Clip refined anchors to image boundaries.
+            - Filter out small boxes.
+            - Perform non-max suppression to generate proposals.
+            - Pad proposals if needed."""
+        
         # Box Scores. Use the foreground class confidence. [Batch, num_rois, 1]
         scores = inputs[0][:, :, 1]
         # Box deltas [batch, num_rois, 4]
@@ -327,6 +354,18 @@ class ProposalLayer(KE.Layer):
         return proposals
 
     def compute_output_shape(self, input_shape):
+        """Computes the output shape for the proposal layer.
+        Parameters:
+            - input_shape (tuple): Shape of the input data.
+        Returns:
+            - tuple: Output shape of the proposal layer.
+        Processing Logic:
+            - Computes output shape based on input.
+            - Returns a tuple with 3 dimensions.
+            - First dimension is None.
+            - Second dimension is the proposal count.
+            - Third dimension is 4."""
+        
         return (None, self.proposal_count, 4)
 
 
@@ -360,10 +399,36 @@ class PyramidROIAlign(KE.Layer):
     """
 
     def __init__(self, pool_shape, **kwargs):
+        """Calculates the ROI align pooling for a given pool shape.
+        Parameters:
+            - pool_shape (tuple): Shape of the pooling region.
+        Returns:
+            - tuple: ROI align pooling for the given pool shape.
+        Processing Logic:
+            - Convert pool_shape to tuple.
+            - Use super() to inherit from parent class.
+            - Store pool_shape in self.
+            - Use **kwargs to accept any additional parameters."""
+        
         super(PyramidROIAlign, self).__init__(**kwargs)
         self.pool_shape = tuple(pool_shape)
 
     def call(self, inputs):
+        """This function performs ROI pooling on a set of feature maps from different levels of a feature pyramid. It takes in three inputs: boxes, image_meta, and feature_maps. The boxes parameter contains the coordinates of the regions of interest (ROIs) in normalized coordinates. The image_meta parameter holds details about the image, and the feature_maps parameter is a list of feature maps from different levels of the feature pyramid. The function returns a pooled feature map, which is a concatenation of the pooled features from each level of the feature pyramid.
+        Processing Logic:
+        - Split the boxes into four coordinates: y1, x1, y2, x2
+        - Calculate the height and width of each ROI
+        - Get the shape of the first image in the batch
+        - Calculate the ROI level based on the ROI area using Equation 1 from the Feature Pyramid Networks paper
+        - Loop through levels 2 to 5 and apply ROI pooling to each level
+        - Pack the pooled features into one tensor
+        - Keep track of which box is mapped to which level
+        - Crop and resize the feature maps using the simplified approach of a single value per bin
+        - Pack the box_to_level mapping into one array and add another column representing the order of pooled boxes
+        - Rearrange the pooled features to match the order of the original boxes
+        - Re-add the batch dimension to the pooled features
+        - Return the pooled features as the output of the function."""
+        
         # Crop boxes [batch, num_boxes, (y1, x1, y2, x2)] in normalized coords
         boxes = inputs[0]
 
@@ -444,6 +509,8 @@ class PyramidROIAlign(KE.Layer):
         return pooled
 
     def compute_output_shape(self, input_shape):
+        """"""
+        
         return input_shape[0][:2] + self.pool_shape + (input_shape[2][-1], )
 
 
@@ -642,10 +709,24 @@ class DetectionTargetLayer(KE.Layer):
     """
 
     def __init__(self, config, **kwargs):
+        """Initializes the DetectionTargetLayer class with the given configuration and keyword arguments.
+        Parameters:
+            - config (dict): A dictionary containing the configuration for the layer.
+            - **kwargs (optional): Additional keyword arguments that can be passed to the layer.
+        Returns:
+            - None: This function does not return any value.
+        Processing Logic:
+            - Initialize DetectionTargetLayer class.
+            - Use super() to call the parent class constructor.
+            - Assign the given configuration to the config attribute.
+            - **kwargs is not used in this function."""
+        
         super(DetectionTargetLayer, self).__init__(**kwargs)
         self.config = config
 
     def call(self, inputs):
+        """"""
+        
         proposals = inputs[0]
         gt_class_ids = inputs[1]
         gt_boxes = inputs[2]
@@ -662,6 +743,8 @@ class DetectionTargetLayer(KE.Layer):
         return outputs
 
     def compute_output_shape(self, input_shape):
+        """"""
+        
         return [
             (None, self.config.TRAIN_ROIS_PER_IMAGE, 4),  # rois
             (None, 1),  # class_ids
@@ -671,6 +754,8 @@ class DetectionTargetLayer(KE.Layer):
         ]
 
     def compute_mask(self, inputs, mask=None):
+        """"""
+        
         return [None, None, None, None]
 
 
@@ -786,10 +871,14 @@ class DetectionLayer(KE.Layer):
     """
 
     def __init__(self, config=None, **kwargs):
+        """"""
+        
         super(DetectionLayer, self).__init__(**kwargs)
         self.config = config
 
     def call(self, inputs):
+        """"""
+        
         rois = inputs[0]
         mrcnn_class = inputs[1]
         mrcnn_bbox = inputs[2]
@@ -817,6 +906,8 @@ class DetectionLayer(KE.Layer):
             [self.config.BATCH_SIZE, self.config.DETECTION_MAX_INSTANCES, 6])
 
     def compute_output_shape(self, input_shape):
+        """"""
+        
         return (None, self.config.DETECTION_MAX_INSTANCES, 6)
 
 
