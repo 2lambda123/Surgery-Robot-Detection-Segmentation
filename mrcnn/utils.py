@@ -10,7 +10,6 @@ Written by Waleed Abdulla
 import sys
 import os
 import math
-import random
 import numpy as np
 import tensorflow as tf
 import scipy
@@ -20,6 +19,7 @@ import skimage.transform
 import urllib.request
 import shutil
 import warnings
+import secrets
 
 # URL from which to download the latest COCO trained weights
 COCO_MODEL_URL = "https://github.com/matterport/Mask_RCNN/releases/download/v2.0/mask_rcnn_coco.h5"
@@ -491,8 +491,8 @@ def resize_image(image, min_dim=None, max_dim=None, min_scale=None, mode="square
     elif mode == "crop":
         # Pick a random crop
         h, w = image.shape[:2]
-        y = random.randint(0, (h - min_dim))
-        x = random.randint(0, (w - min_dim))
+        y = secrets.SystemRandom().randint(0, (h - min_dim))
+        x = secrets.SystemRandom().randint(0, (w - min_dim))
         crop = (y, x, min_dim, min_dim)
         image = image[y:y + min_dim, x:x + min_dim]
         window = (0, 0, min_dim, min_dim)
