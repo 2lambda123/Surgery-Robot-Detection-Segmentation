@@ -10,7 +10,6 @@ Written by Waleed Abdulla
 import os
 import sys
 import logging
-import random
 import itertools
 import colorsys
 
@@ -20,6 +19,7 @@ import matplotlib.pyplot as plt
 from matplotlib import patches,  lines
 from matplotlib.patches import Polygon
 import IPython.display
+import secrets
 
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../")
@@ -68,7 +68,7 @@ def random_colors(N, bright=True):
     brightness = 1.0 if bright else 0.7
     hsv = [(i / N, 1, brightness) for i in range(N)]
     colors = list(map(lambda c: colorsys.hsv_to_rgb(*c), hsv))
-    random.shuffle(colors)
+    secrets.SystemRandom().shuffle(colors)
     return colors
 
 
@@ -158,7 +158,7 @@ def display_instances(image, boxes, masks, class_ids, class_names,
         if not captions:
             score = scores[i] if scores is not None else None
             label = class_names[class_id]
-            x = random.randint(x1, (x1 + x2) // 2)
+            x = secrets.SystemRandom().randint(x1, (x1 + x2) // 2)
             caption = "{} {:.3f}".format(label, score) if score else label
         else:
             caption = captions[i]
@@ -470,7 +470,7 @@ def draw_boxes(image, boxes=None, refined_boxes=None,
             # If there are refined boxes, display captions on them
             if refined_boxes is not None:
                 y1, x1, y2, x2 = ry1, rx1, ry2, rx2
-            x = random.randint(x1, (x1 + x2) // 2)
+            x = secrets.SystemRandom().randint(x1, (x1 + x2) // 2)
             ax.text(x1, y1, caption, size=11, verticalalignment='top',
                     color='w', backgroundcolor="none",
                     bbox={'facecolor': color, 'alpha': 0.5,

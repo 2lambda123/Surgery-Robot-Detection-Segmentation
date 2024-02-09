@@ -1,6 +1,6 @@
 import json
 import os
-import random
+import secrets
 
 def split(annotations, *param, random_shuffle=True):
     train_ann = {}
@@ -9,7 +9,7 @@ def split(annotations, *param, random_shuffle=True):
 
     if random_shuffle == True:
         index = list(range(len(annotations)))
-        random.shuffle(index)
+        secrets.SystemRandom().shuffle(index)
         num_train = round(len(annotations)*0.6)
         num_val = round(len(annotations)*0.2)
         train_index = index[:num_train]

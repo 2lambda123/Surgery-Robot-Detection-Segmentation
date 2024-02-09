@@ -8,7 +8,6 @@ Written by Waleed Abdulla
 """
 
 import os
-import random
 import datetime
 import re
 import math
@@ -28,6 +27,8 @@ from mrcnn import utils
 
 # Requires TensorFlow 1.3+ and Keras 2.0.8+.
 from distutils.version import LooseVersion
+import secrets
+
 assert LooseVersion(tf.__version__) >= LooseVersion("1.3")
 assert LooseVersion(keras.__version__) >= LooseVersion('2.0.8')
 
@@ -1221,7 +1222,7 @@ def load_image_gt(dataset, config, image_id, augment=False, augmentation=None,
     # TODO: will be removed in a future update in favor of augmentation
     if augment:
         logging.warning("'augment' is depricated. Use 'augmentation' instead.")
-        if random.randint(0, 1):
+        if secrets.SystemRandom().randint(0, 1):
             image = np.fliplr(image)
             mask = np.fliplr(mask)
 
